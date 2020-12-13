@@ -128,7 +128,7 @@ int main()
     cout << "End test time:\t\t" << file_data_flt(filename, 32, 4) << "\n";     // ТК
     cout << "Amount of passports:\t" << file_data_int(filename, 36, 2) << "\n"; // "Кол-во паспортов"
     cout << "Kind of file:\t\t" << file_data_int(filename, 38, 1) << "\n"; // "Разновидность файла"
-
+    cout << "Comment length:\t\t" << file_data_int(filename, 39, 1) << "\n"; // "Длина комментария"
     cout << "\n";
 
 /*    char s[10] = "";
