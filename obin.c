@@ -50,7 +50,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
-//#include <windows.h>
+#include <windows.h>
 
 
 using namespace std;
@@ -106,7 +106,7 @@ unsigned int file_data_int(const char * filename, int position, int bytes)
 
 int main()
 {
-//    SetConsoleOutputCP(1251);
+    SetConsoleOutputCP(1251);
 //    SetConsoleCP(1251);
 
     const char * filename = "1.us0";
