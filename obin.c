@@ -47,145 +47,136 @@
 
 */
 
-#include <stdio.h>
 #include <iostream>
-#include <fstream>
+#include <cstdio>
+#include <cstring>
+//#include <windows.h>
 
 
 using namespace std;
 
 
-int open_file(string filename) // проверим наличие файла
+string file_data_str(const char * filename, int position, int bytes)
 {
-	ifstream file;
+    char * data_ch[10];
+    memset(data_ch, 0, 10);
 
-	int open_file_is_true7 = 0;
-	
-	file.open(filename, ios::binary);
+    string data_str = "";
 
-	if (file.is_open() == true)
-	{
-		cout << "File " << filename << " opened!" << endl;
-		cout << "\n";
-		open_file_is_true7 = 1;
-	}
-	else
-	{
-		cout << "WARNING! File has not opened!" << endl;
-	}
-	file.close();
+    FILE * F = fopen(filename, "rb");
+    
+    fseek(F, position, 0);
+    fread(data_ch, bytes, 1, F);
+    
+    data_str = (const char*)data_ch;
 
-	return open_file_is_true7;
+
+    fclose(F);
+    return data_str;
 }
 
 
-string file_data_str(string filename, int position, int bytes) // принять имя файла, позицию и количество считываемых байт
+float file_data_flt(const char * filename, int position, int bytes)
 {
-	char ch;
-	string data_str = ""; // возвращаемая функцией строка
+    float data_flt = .0;
 
-	ifstream file;
-	file.open(filename, ios::binary); //открыть файл
-	file.seekg(position); //перейти на нужную позицию в файле
+    FILE * F = fopen(filename, "rb");
+    
+    fseek(F, position, 0);
+    fread(&data_flt, bytes, 1, F);
 
-	for (int i = 0; i < bytes; i++) //запускаем счетчик байт для считывания из файла
-		{
-			file.get(ch);
-			data_str += ch; // составить строку из считанных байт
-		}
-	file.close();
-
-	return data_str;
+    fclose(F);
+    return data_flt;
 }
 
 
-float file_data_float(string filename, int position, int bytes) // принять имя файла, позицию и количество считываемых байт
+unsigned int file_data_int(const char * filename, int position, int bytes)
 {
-	char ch;
-	std::string data_str = ""; // возвращаемая функцией строка
+    int data_int = 0;
 
-	ifstream file;
-	file.open(filename, ios::binary); //открыть файл
-	file.seekg(position); //перейти на нужную позицию в файле
-
-	for (int i = 0; i < bytes; i++) //запускаем счетчик байт для считывания из файла
-		{
-			file.get(ch);
-			data_str += ch; // составить строку из считанных байт
-			cout << int(ch) << " - " << data_str << endl;
-
-		}
-	
-	
-//	float data_float = std::stof(data_str);
-
-//	cout << data_float << endl;
-
-	float data_float;
-
-
-	file.close();
-
-	return data_float;
+    FILE * F = fopen(filename, "rb");
+    
+    fseek(F, position, 0);
+    fread(&data_int, bytes, 1, F);
+    
+    fclose(F);
+    return data_int;
 }
 
 
-
-
-string file_data_int(string filename, int position, int bytes) // принять имя файла, позицию и количество считываемых байт
+int main()
 {
-	char ch;
-	string data_str = ""; // возвращаемая функцией строка
-	int data_int;
+//    SetConsoleOutputCP(1251);
+//    SetConsoleCP(1251);
 
-	ifstream file;
-	file.open(filename, ios::binary); //открыть файл
-	file.seekg(position); //перейти на нужную позицию в файле
+    const char * filename = "1.us0";
 
-	for (int i = 0; i < bytes; i++) //запускаем счетчик байт для считывания из файла
-		{
-			file.get(ch);
-			data_str += &ch; // составить строку из считанных байт
-		}		
-	file.close();
+    FILE * F = fopen (filename, "rb"); //проверка файла
+    if (F == NULL) 
+    {
+        cout << "Unable to open file " << filename << endl;
+        return 1;
+    }
+    fclose (F);
 
-	//data_str = stoi(data_str);
 
-	return data_str;
+    cout << "YC0 :\t\t\t" << file_data_str(filename, 0, 4) << "\n"; // "УС0 "
+    cout << "Name of product:\t" << file_data_str(filename, 4, 8) << "\n"; // "Имя изделия"
+    cout << "Name of test:\t\t" << file_data_str(filename, 12, 8) << "\n"; // "Имя испытания"
+    cout << "Date of test:\t\t" << file_data_str(filename, 20, 8) << "\n"; // "Дата испытания"
+    cout << "Initial test time:\t" << file_data_flt(filename, 28, 4) << "\n";  // ТН
+    cout << "End test time:\t\t" << file_data_flt(filename, 32, 4) << "\n";     // ТК
+    cout << "Amount of passports:\t" << file_data_int(filename, 36, 2) << "\n"; // "Кол-во паспортов"
+    cout << "Kind of file:\t\t" << file_data_int(filename, 38, 1) << "\n"; // "Разновидность файла"
+
+    cout << "\n";
+
+/*    char s[10] = "";
+
+    fread (s , 4 , 1 , F);
+    cout << "YC0 :\t\t\t" << s << endl;
+
+    fread (s , 8 , 1 , F);
+    cout << "Name of product:\t" << s << endl;
+
+    fread (s , 8 , 1 , F);
+    cout << "Name of test:\t\t" << s << endl;
+
+    fread (s , 8 , 1 , F);
+    cout << "Date of test:\t\t" << s << endl;
+    
+
+
+    float f = .0;
+
+    fread (&f , 4 , 1 , F);
+    cout << "Initial test time:\t" << f << endl;
+    f = .0;
+
+    fread (&f , 4 , 1 , F);
+    cout << "End test time:\t\t" << f << endl;
+    f = .0;
+
+
+
+    unsigned int ui = 0;
+
+    fread (&ui , 2 , 1 , F);
+    cout << "Amount of passports:\t" <<  ui << endl;
+    ui = 0;
+
+    fread (&ui , 1 , 1 , F);
+    cout << "Kind of file:\t\t" <<  ui << endl;
+    ui = 0;
+
+    fread (&ui , 1 , 1 , F);
+    cout << "Comment length:\t\t" << ui << endl;
+    ui = 0;
+
+    fclose (F);
+
+*/
+
+    return 0;
 }
 
-
-
-
-
-
-
-
-
-
-int main(int argc, const char** argv)
-{
-	int amount; 	//количество считываемых байт из файла
-	int counter; 	//счетчик считанных байт
-	char ch;
-
-	string filename = "1.us0"; //текущее название кириллицей программа не может прочесть
-	
-	if (open_file(filename) == 1) // проверить наличие файла
-	{
-		cout << "YC0 :\t\t\t" << file_data_str(filename, 0, 4) << "\n"; // "УС0 "
-		cout << "Name of product:\t" << file_data_str(filename, 4, 8) << "\n"; // "Имя изделия"
-		cout << "Name of test:\t\t" << file_data_str(filename, 12, 8) << "\n"; // "Имя испытания"
-		cout << "Date of test:\t\t" << file_data_str(filename, 20, 8) << "\n"; // "Дата испытания"
-		
-
-		cout << "Amount of passports:\t" << file_data_int(filename, 36, 2) << "\n"; // "Кол-во паспортов"
-		cout << "Kind of file:\t\t" << file_data_int(filename, 38, 1) << "\n"; // "Разновидность файла"
-
-		cout << "\n";
-
-	}
-
-	system("pause");
-	return 0;
-}
