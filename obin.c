@@ -51,9 +51,24 @@
 #include <cstdio>
 #include <cstring>
 #include <windows.h>
-
+#include <vector>
 
 using namespace std;
+
+
+int file_opening(const char * filename) // проверка на наличие файла
+{
+    int ofile = 0;
+
+    FILE * F = fopen (filename, "rb");
+    if (F == NULL) 
+    {
+        cout << "Unable to open file ---> " << filename << endl;
+        ofile = 1;
+    }
+    fclose (F);
+    return ofile;
+}
 
 
 string file_data_str(const char * filename, int position, int bytes)
@@ -104,62 +119,129 @@ unsigned int file_data_int(const char * filename, int position, int bytes)
 }
 
 
-void data_passport(const char * filename, int size_of_passport, int passport_position, int amount_passports)
+struct list_heading
 {
-    //printf("Passport position:\t%d\n", passport_position);
-    //printf("Amount of passports:\t%d\n", amount_passports);
-    cout << "\tName of subject:\t" << file_data_str(filename, passport_position, 12) << "\n";
-    cout << "\tIndex:\t\t\t" << file_data_int(filename, passport_position + 12, 2) << "\n";
-    cout << "\tSubject format:\t\t" << file_data_int(filename, passport_position + 14, 1) << "\n";
-    cout << "\tType of subject:\t" << file_data_int(filename, passport_position + 15, 1) << "\n";
-    cout << "\tA0:\t\t\t" << file_data_flt(filename, passport_position + 16, 4) << "\n";
-    cout << "\tA1:\t\t\t" << file_data_flt(filename, passport_position + 20, 4) << "\n";
-    cout << "\tAmount of parameter:\t" << file_data_str(filename, passport_position + 24, 8) << "\n\n\n";
+    string yc0;
+    string name_of_product;
+    string name_of_test;
+    string date_of_test;
+    float initial_test_time;
+    float end_test_time;
+    int amount_passports;
+    int kind_of_file;
+    int comment_lenght;
+
+};
+typedef struct list_heading Heading;
+
+
+void read_heading(const char * filename, int head[], Heading * h)
+{
+    int pos[9] = {0}; //положение параметра в заголовке
+    
+    for (int n = 1; n < 9; n++) // счетчик
+        pos[n] = pos[n-1] + head[n-1];
+
+    h->yc0 = file_data_str(filename, pos[0], head[0]);
+    h->name_of_product = file_data_str(filename, pos[1], head[1]);
+    h->name_of_test = file_data_str(filename, pos[2], head[2]);
+    h->date_of_test = file_data_str(filename, pos[3], head[3]);
+    h->initial_test_time = file_data_flt(filename, pos[4], head[4]);
+    h->end_test_time = file_data_flt(filename, pos[5], head[5]);
+    h->amount_passports = file_data_int(filename, pos[6], head[6]);
+    h->kind_of_file = file_data_int(filename, pos[7], head[7]);
+    h->comment_lenght = file_data_int(filename, pos[8], head[8]);
 }
+
+
+void print_heading(Heading h)
+{
+    cout << "YC0 :\t\t\t" << h.yc0 << "\n";
+    cout << "Name of product:\t" << h.name_of_product << "\n";
+    cout << "Name of test:\t\t" << h.name_of_test << "\n";
+    cout << "Date of test:\t\t" << h.date_of_test << "\n";
+    cout << "Initial test time:\t" << h.initial_test_time << "\n";
+    cout << "End test time:\t\t" << h.end_test_time << "\n";
+    cout << "Amount of passports:\t" << h.amount_passports << "\n";
+    cout << "Kind of file:\t\t" << h.kind_of_file << "\n";
+    cout << "Comment length:\t\t" << h.comment_lenght << "\n";
+    cout << "\n";
+}
+
+
+struct list_passport
+{
+    string name_of_subject;
+    int index;
+    int subject_format;
+    int type_of_subject;
+    float A0;
+    float A1;
+    string amount_of_parameter;
+};
+typedef struct list_passport Passport;
+
+
+void read_passport(const char * filename, int passport_position, int head[], Passport * p)
+{
+    int pos[7] = {0}; //положение параметра в заголовке
+    
+    for (int n = 1; n < 7; n++) // счетчик
+        pos[n] = pos[n-1] + head[n-1];
+
+    p->name_of_subject = file_data_str(filename, passport_position + pos[0], head[0]);
+    p->index = file_data_int(filename, passport_position + pos[1], head[1]);
+    p->subject_format = file_data_int(filename, passport_position + pos[2], head[2]);
+    p->type_of_subject = file_data_int(filename, passport_position + pos[3], head[3]);
+    p->A0 = file_data_flt(filename, passport_position + pos[4], head[4]);
+    p->A1 = file_data_flt(filename, passport_position + pos[5], head[5]);
+    p->amount_of_parameter = file_data_str(filename, passport_position + pos[6], head[6]);
+}
+
+void print_passport(Passport p)
+{
+    
+    cout << "\tName of subject:\t" << p.name_of_subject << "\n";
+    cout << "\tIndex:\t\t\t" << p.index << "\n";
+    cout << "\tSubject format:\t\t" << p.subject_format << "\n";
+    cout << "\tType of subject:\t" << p.type_of_subject << "\n";
+    cout << "\tA0:\t\t\t" << p.A0 << "\n";
+    cout << "\tA1:\t\t\t" << p.A1 << "\n";
+    cout << "\tAmount of parameter:\t" << p.amount_of_parameter << "\n\n\n";
+}
+
 
 
 
 int main()
 {
+    const char * filename = "1.us0";
+    //const char * filename = "ЕН Д1-042-014 слот ММП дв ед.us0"; // такое имя не читается
+    if (file_opening(filename) == 1)
+        return 1;
     SetConsoleOutputCP(866);
 //    SetConsoleCP(866);
 
-    const char * filename = "1.us0";
 
-    FILE * F = fopen (filename, "rb"); //проверка файла
-    if (F == NULL) 
-    {
-        cout << "Unable to open file " << filename << endl;
-        return 1;
-    }
-    fclose (F);
+    int source_head[] = {4, 8, 8, 8, 4, 4, 2, 1, 1}; // ИД для чтения заголовка, сколько Байт весит параметр
 
-    cout << "YC0 :\t\t\t" << file_data_str(filename, 0, 4) << "\n"; // "УС0 "
-    cout << "Name of product:\t" << file_data_str(filename, 4, 8) << "\n"; // "Имя изделия"
-    cout << "Name of test:\t\t" << file_data_str(filename, 12, 8) << "\n"; // "Имя испытания"
-    cout << "Date of test:\t\t" << file_data_str(filename, 20, 8) << "\n"; // "Дата испытания"
-    cout << "Initial test time:\t" << file_data_flt(filename, 28, 4) << "\n";  // ТН
-    cout << "End test time:\t\t" << file_data_flt(filename, 32, 4) << "\n";     // ТК
-    cout << "Amount of passports:\t" << file_data_int(filename, 36, 2) << "\n"; // "Кол-во паспортов"
-    cout << "Kind of file:\t\t" << file_data_int(filename, 38, 1) << "\n"; // "Разновидность файла"
-    cout << "Comment length:\t\t" << file_data_int(filename, 39, 1) << "\n"; // "Длина комментария"
-    cout << "\n";
+    Heading h;
+    read_heading(filename, source_head, &h);
+    print_heading(h); // прочитать из файла и вывести данные заголовка
 
-// *************** PASSPORTS ***************
 
+    int source_pas[] = {12, 2, 1, 1, 4, 4, 8}; // ИД для чтения паспорта, сколько Байт весит параметр
+    //int amount_passports = h.amount_passports; // сколько всего паспортов
+    int amount_passports = 10; //test
+    int passport_position = 40 + h.comment_lenght; // с какой позиции начинаются паспорта    
     int size_of_passport = 32;
-    int passport_position = 40 + file_data_int(filename, 39, 1);
-    
-    int amount_passports = file_data_int(filename, 36, 2);
 
-    //for (int i = 0; i < 5; i++)   // test of mechanic
-    for (int i = 0; i < amount_passports; i++)
+    Passport pas[amount_passports];
+    for (int n = 0; n < amount_passports; n++) // прочитать и вывести данные паспортов
     {
-        printf("Data of %d  passport:\n", i + 1);
-        data_passport(filename, size_of_passport, passport_position, amount_passports);
-        passport_position += size_of_passport;
+        read_passport(filename, passport_position + n * size_of_passport, source_pas, &pas[n]);
+        print_passport(pas[n]);
     }
-
 
     return 0;
 }
